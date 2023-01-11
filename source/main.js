@@ -1,51 +1,56 @@
-import systeminfo from 'systeminformation'
+import { promises as fs } from 'fs';
+import systeminfo from 'systeminformation';
 
-const cpuData = async () => {
-    const data = await systeminfo.cpu()
-    try {
-        console.log('CPU Information:')
-        console.log('------------------------------------------')
-        console.log(`- manufaturer: ${data.manufacturer}`)
-        console.log(`- brand: ${data.brand}`)
-        console.log(`- speed: ${data.speed}`)
-        console.log(`- cores: ${data.cores}`);
-        console.log(`- physical cores: ${data.physicalCores}`);
-        console.log('------------------------------------------')
-    } catch (err) {
-        console.log(err);
-    }
-}
-cpuData()
 
-const networkData = async () => {
+const networkData = async (filePath) => {
     const data = await systeminfo.networkStats()
+    const dataObj = [] //when pushed; typeof object
     try {
-        data.forEach(stat => {
-            console.log('Network Statistics:');
-            console.log('------------------------------------------')
-            console.log(`Network Interface Type: ${stat.iface}`);
-            console.log(`Opperational State: ${stat.operstate}`);
-            console.log('------------------------------------------')
-        })
+        data.forEach(stat => dataObj.push({
+            "- Network IF": stat.iface,
+            "- Operation State": stat.operstate
+        }))
+        fs.writeFile(filePath, JSON.stringify(dataObj[0], null, 2), { encoding: 'utf8' })
+        console.log(`File written at: ${filePath}`)
     } catch (err) {
-        console.log(err);
+        console.log(err)
     }
 }
-networkData()
+networkData('./source/logs/network-meta.json')
 
-const networkIfData = async () => {
-    const [ data ] = await systeminfo.networkInterfaces() //deconstruct obj to ignore unnecessary data
+const cpuData = async (filePath) => {
+    const data = await systeminfo.cpu()
+    const dataObj = {
+        "- Manufacturer:": data.manufacturer,
+        "- brand:": data.brand,
+        "- speed:": data.speed,
+        "- cores:": data.cores,
+        "- physical cores": data.physicalCores
+    }
     try {
-       console.log('Network Interface Statistics: ');
-       console.log('------------------------------------------')
-       console.log(`Network Interface Name: ${data.ifaceName}`)
-       console.log(`IP4: ${data.ip4}`);
-       console.log(`IP4 Subnet: ${data.ip4subnet}`);
-       console.log(`MAC: ${data.mac}`);
-       data.dhcp ? console.log('DHCP is active') : console.log('DHCP is not active')
-       console.log('------------------------------------------')
+        await fs.writeFile(filePath, JSON.stringify(dataObj, null, 2), {encoding: 'utf-8'})
+        console.log(`File written at: ${filePath}`)
     } catch (err) {
-        console.log(err);
+        console.log(err)
     }
 }
-networkIfData()
+cpuData('./source/logs/cpulogs.json')
+
+
+ const networkIfData = async (filePath) => {
+    const [ data ] = await systeminfo.networkInterfaces() //destruct obj to ignore unnecessary data
+    const dataObj = {
+        "- Network Interface Name:": data.ifaceName,
+        "- IP4:": data.ip4,
+        "- IP4 Subnet:": data.ip4subnet,
+        "- MAC:": data.mac,
+        "- DHCP": data.dhcp ? "DHCP is active" : "DHCP is not active"
+    }
+    try {
+       fs.writeFile(filePath, JSON.stringify(dataObj, null, 2), { encoding: 'utf-8'})
+       console.log(`File written at: ${filePath}`)
+    } catch (err) {
+        console.log(err)
+    }
+}
+networkIfData('./source/logs/networklogs.json')
