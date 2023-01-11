@@ -4,6 +4,9 @@
   "description": "Testing the systeminformation npm package",
   "main": "./source/main.js",
   "type": "module",
+  "nodemonConfig": {
+    "ignore": "./source/logs/*"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon"
